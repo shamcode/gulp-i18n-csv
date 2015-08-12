@@ -1,33 +1,37 @@
 {
-  "name": "gulp-i18n-csv",
-  "version": "0.0.0",
-  "description": "My wondrous gulp plugin",
-  "license": "MIT",
-  "repository": "cynngah/gulp-i18n-csv",
-  "author": {
-    "name": "Cynthia (Qingwei) Li",
-    "email": "Qingwei.Li@ec.gc.ca",
-    "url": "unicorn.com"
-  },
-  "engines": {
-    "node": ">=0.10.0"
-  },
-  "scripts": {
-    "test": "mocha"
-  },
-  "files": [
-    "index.js"
-  ],
-  "keywords": [
-    "gulpplugin"
-  ],
-  "dependencies": {
-    "gulp-util": "^3.0.4",
-    "jsonfile": "^2.2.1",
-    "through2": "^0.6.5"
-  },
-  "devDependencies": {
-    "gulp-config": "^0.3.0",
-    "mocha": "*"
-  }
+    "name": "gulp-i18n-csv",
+    "version": "0.0.0",
+    "description": "My wondrous gulp plugin",
+    "license": "MIT",
+    "repository": "cynngah/gulp-i18n-csv",
+    "author": {
+        "name": "Cynthia (Qingwei) Li",
+        "email": "Qingwei.Li@ec.gc.ca",
+        "url": "unicorn.com"
+    },
+    "engines": {
+        "node": ">=0.10.0"
+    },
+    "scripts": {
+        "test": "mocha"
+    },
+    "files": [
+        "index.js"
+    ],
+    "keywords": [
+        "gulpplugin"
+    ],
+    "dependencies": {
+        "csv": "^0.4.6",
+        "csv-parse": "^1.0.0",
+        "gulp-util": "^3.0.4",
+        "jsonfile": "^2.2.1",
+        "through2": "^0.6.5",
+        "chalk": "^1.1.0",
+        "vinyl": "^0.5.1"
+    },
+    "devDependencies": {
+        "gulp-config": "^0.3.0",
+        "mocha": "*"
+    }
 }

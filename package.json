@@ -6,8 +6,7 @@
     "repository": "fgpv-vpgf/gulp-i18n-csv",
     "author": {
         "name": "Cynthia (Qingwei) Li",
-        "email": "Qingwei.Li@ec.gc.ca",
-        "url": "unicorn.com"
+        "email": "Qingwei.Li@ec.gc.ca"
     },
     "engines": {
         "node": ">=0.10.0"
@@ -19,7 +18,11 @@
         "index.js"
     ],
     "keywords": [
-        "gulpplugin"
+        "gulpplugin",
+        "grunt",
+        "i18n",
+        "csv",
+        "translation"
     ],
     "dependencies": {
         "csv": "^0.4.6",

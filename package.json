@@ -1,9 +1,9 @@
 {
     "name": "gulp-i18n-csv",
-    "version": "0.0.0",
-    "description": "My wondrous gulp plugin",
+    "version": "1.0.0",
+    "description": "Create internationalized files from a CSV translations file",
     "license": "MIT",
-    "repository": "cynngah/gulp-i18n-csv",
+    "repository": "fgpv-vpgf/gulp-i18n-csv",
     "author": {
         "name": "Cynthia (Qingwei) Li",
         "email": "Qingwei.Li@ec.gc.ca",
@@ -25,9 +25,7 @@
         "csv": "^0.4.6",
         "csv-parse": "^1.0.0",
         "gulp-util": "^3.0.4",
-        "jsonfile": "^2.2.1",
         "through2": "^0.6.5",
-        "chalk": "^1.1.0",
         "vinyl": "^0.5.1"
     },
     "devDependencies": {

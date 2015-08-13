@@ -27,39 +27,64 @@ module.exports = function (options) {
             var file = 'translation.json';
             // initiate JSON string to write here
             var jsonObj = {};
-            for (var j = 1; j < csvArray.length; j++) {
+            for (var j = 0; j < csvArray.length; j++) {
                 // append to JSON string
-                var key = csvArray[j][1];
-                var value = csvArray[j][i];
-                jsonObj[key] = value;
+				var key = csvArray[j][1];
+                var subkeyArray = checkPrefix(key);
+                var value;
+                if (subkeyArray) {
+                    var subkey = subkeyArray[1];
+                    var superkey = subkeyArray[0]
+                    value = csvArray[j][i];
+					if (!jsonObj[superkey]){
+						jsonObj[superkey] = {};
+					}
+                    jsonObj[superkey][subkey] = value;
+                } else{
+                    value = csvArray[j][i];
+					console.log(key, value);
+                    jsonObj[key] = value;
+                }
+                var jsfile = new File({
+                    cwd: '/',
+                    path: '/' + lang + '/' + file, // put each translation file in a folder
+                    contents: new Buffer(JSON.stringify(jsonObj))
+                });
             }
             // do not write files from the gulp plugin itself
             // create a file object and push it back to through stream
             // so main gulpfile
-
-            var jsfile = new File({
-                cwd: '/',
-                path: '/' + lang + '/' + file, // put each translation file in a folder
-                contents: new Buffer(JSON.stringify(jsonObj))
-            });
-
             task.push(jsfile)
         }
     }
 
-    function checkPrefix() { // check for prefix
+    function checkPrefix(word) { // check for prefix
+        if (word){
+            var prefixArray = word.split('.');
+            if (prefixArray.length > 1) {
+                console.log(prefixArray);
+                return prefixArray;
+            }
+        }
     }
 
     return through.obj(function (file, enc, cb) {
-        if (file.isNull()) {
-            cb(null, file);
-            return;
-        }
+	    if (file.isNull()) {
+			cb(null, file);
+			return;
+		}
+		
+		//console.log(file.contents);
+        
         // STREAM BLOCK
+		console.log(file.isStream(), file.isBuffer());
         if (file.isStream()) {
             var csvArray = [];
-            var fileName = JSON.stringify(file);
-            var wetStream = fs.createReadStream(file);
+			console.log(file.path);
+            //var fileName = JSON.stringify(file);
+            var wetStream = fs.createReadStream(file.path);
+			var task = this;
+			console.log("MERRY CHRISTMAS");
             csv().from.stream(
                 wetStream
                 ).on('error', function (error) {
@@ -69,19 +94,22 @@ module.exports = function (options) {
                     csvArray.push(JSON.parse(JSON.stringify(row)));
                 })
                 .on('end', function () {
-                    parseArray(csvArray);
+				    console.log("MERRY CHRISTMAS");
+                    parseArray(csvArray, task);
                 });
         }
+		else{
         // BUFFER BLOCK
-        try {
-            var task = this; // task is a reference to the through stream
-            csvParse(file.contents.toString('utf-8'), { comment: '#' }, function (err, output) {
-                parseArray(output, task);
-            });
-        } catch (err) {
-            this.emit('error', new gutil.PluginError('gulp-i18n-csv', err));
+			
+			try {
+				var task = this; // task is a reference to the through stream
+				csvParse(file.contents.toString('utf-8'), { comment: '#' }, function (err, output) {
+					parseArray(output, task);
+				});
+			} catch (err) {
+				this.emit('error', new gutil.PluginError('gulp-i18n-csv', err));
+			}
         }
-
         cb();
     });
 };

@@ -107,7 +107,7 @@ module.exports = function (options) {
         else {
             // BUFFER BLOCK
             try {
-                csvParse(file.contents.toString('utf-8'), { comment: '#' }, function (err, output) {
+                csvParse(file.contents.toString('utf-8'), function (err, output) {
                     parseArray(output, task);
 					cb();
                 });

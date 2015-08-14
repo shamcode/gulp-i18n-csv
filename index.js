@@ -76,30 +76,24 @@ module.exports = function (options) {
             return;
         }
 
-        // STREAM BLOCK - no working yet
-        console.log(file.isStream(), file.contents);
+        // STREAM BLOCK
         if (file.isStream()) {
             var csvArray = [];
 			var wetStream = fs.createReadStream(file.path);
-			console.log(file.path.type);
 			var parser = csvParse();
 			var task = this;
 			
 			parser.on('readable', function(){
-				console.log('on readable');
 				var record;
 				while(record = parser.read()){
 					csvArray.push(record);
-					//console.log('1');
 				}
 			});
 
-			// AND/OR
 			parser.on('error', function(err){
 				console.log('on error', err.message);
 			});
 
-			// now pump some data into it (and pipe it somewhere else)
 			parser.on('finish', function(){
 				console.log('on finish');
 				parseArray(csvArray, task);
@@ -107,23 +101,8 @@ module.exports = function (options) {
 				cb();
 			});
 			
-			//wetStream.pipe(parser);//.pipe(process.stdout);
 			file.contents.pipe(parser);
-			
-			//parser.write(file.path);
 
-            /*csv().from.stream(
-                wetStream
-                ).on('error', function (error) {
-                    console.log(error.message);
-                })
-                .on('record', function (row, index) {
-                    csvArray.push(JSON.parse(JSON.stringify(row)));
-                })
-                .on('end', function () {
-                    //console.log("MERRY CHRISTMAS");
-                    parseArray(csvArray, task);
-                });*/
         }
         else {
             // BUFFER BLOCK

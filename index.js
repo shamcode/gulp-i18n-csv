@@ -77,12 +77,42 @@ module.exports = function (options) {
         }
 
         // STREAM BLOCK - no working yet
-        //console.log(file.isStream(), file.isBuffer());
+        console.log(file.isStream(), file.contents);
         if (file.isStream()) {
             var csvArray = [];
-            var wetStream = fs.createReadStream(file.path);
+			var wetStream = fs.createReadStream(file.path);
+			console.log(file.path.type);
+			var parser = csvParse();
+			var task = this;
+			
+			parser.on('readable', function(){
+				console.log('on readable');
+				var record;
+				while(record = parser.read()){
+					csvArray.push(record);
+					//console.log('1');
+				}
+			});
 
-            csv().from.stream(
+			// AND/OR
+			parser.on('error', function(err){
+				console.log('on error', err.message);
+			});
+
+			// now pump some data into it (and pipe it somewhere else)
+			parser.on('finish', function(){
+				console.log('on finish');
+				parseArray(csvArray, task);
+				parser.end();
+				cb();
+			});
+			
+			//wetStream.pipe(parser);//.pipe(process.stdout);
+			file.contents.pipe(parser);
+			
+			//parser.write(file.path);
+
+            /*csv().from.stream(
                 wetStream
                 ).on('error', function (error) {
                     console.log(error.message);
@@ -93,18 +123,18 @@ module.exports = function (options) {
                 .on('end', function () {
                     //console.log("MERRY CHRISTMAS");
                     parseArray(csvArray, task);
-                });
+                });*/
         }
         else {
             // BUFFER BLOCK
             try {
                 csvParse(file.contents.toString('utf-8'), { comment: '#' }, function (err, output) {
                     parseArray(output, task);
+					cb();
                 });
             } catch (err) {
                 this.emit('error', new gutil.PluginError('gulp-i18n-csv', err));
             }
         }
-        cb();
     });
 };

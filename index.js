@@ -8,6 +8,17 @@ var PluginError = gutil.PluginError;
 var File = require('vinyl');
 
 module.exports = function (options) {
+    options = options || {};
+
+    // stringifies JSON and makes it pretty if asked
+    function stringify(jsonObj) {
+        if (options.pretty) {
+            return JSON.stringify(jsonObj, null, 4);
+        } else {
+            return JSON.stringify(jsonObj);
+        }
+    }
+
     // parse array to JSON object and write to JSON file
     function parseArray(csvArray, task) {
         var jsonObj;
@@ -47,7 +58,7 @@ module.exports = function (options) {
                 jsfile = new File({
                     cwd: '/',
                     path: '/' + lang + '/' + file, // put each translation file in a folder
-                    contents: new Buffer(JSON.stringify(jsonObj))
+                    contents: new Buffer(stringify(jsonObj))
                 });
             }
 
@@ -79,38 +90,41 @@ module.exports = function (options) {
         // STREAM BLOCK
         if (file.isStream()) {
             var csvArray = [];
-			var wetStream = fs.createReadStream(file.path);
-			var parser = csvParse();
-			var task = this;
-			
-			parser.on('readable', function(){
-				var record;
-				while(record = parser.read()){
-					csvArray.push(record);
-				}
-			});
+            var parser = csvParse();
 
-			parser.on('error', function(err){
-				console.log('on error', err.message);
-			});
+            parser.on('readable', function () {
+                var record;
+                while (record = parser.read()) {
+                    csvArray.push(record);
+                }
+            });
 
-			parser.on('finish', function(){
-				console.log('on finish');
-				parseArray(csvArray, task);
-				parser.end();
-				cb();
-			});
-			
-			file.contents.pipe(parser);
+            parser.on('error', function (err) {
+                //console.log('on error', err.message);
+                this.emit('error', new gutil.PluginError('gulp-i18n-csv', err));
+            });
+
+            parser.on('finish', function () {
+                //console.log('on finish');
+                parseArray(csvArray, task);
+                parser.end();
+                cb();
+            });
+
+            file.contents.pipe(parser);
 
         }
         else {
             // BUFFER BLOCK
             try {
-                csvParse(file.contents.toString('utf-8'), { comment: '#' }, function (err, output) {
-                    parseArray(output, task);
-					cb();
-                });
+                csvParse(file.contents.toString('utf-8'),
+                    {
+                        comment: '#'
+                    },
+                    function (err, output) {
+                        parseArray(output, task);
+                        cb();
+                    });
             } catch (err) {
                 this.emit('error', new gutil.PluginError('gulp-i18n-csv', err));
             }

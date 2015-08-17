@@ -7,7 +7,7 @@
 
 ## Install
 
-```
+```bash
 $ npm install --save-dev gulp-i18n-csv
 ```
 
@@ -28,16 +28,16 @@ gulp.task('default', function () {
 
 ## API
 
-### i18nCsv(options)
+`gulpi18nCsv([ options ])`
 
-#### options
+### options
 
-##### foo
+#### pretty
 
-Type: `boolean`  
+Type: `boolean`
 Default: `false`
 
-Lorem ipsum.
+When `true`, outputs human-readble JSON.
 
 
 ## License

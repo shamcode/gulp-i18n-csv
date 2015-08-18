@@ -42,4 +42,4 @@ When `true`, outputs human-readble JSON.
 
 ## License
 
-MIT © [Cynthia (Qingwei) Li](http://unicorn.com)
+MIT © [Cynthia (Qingwei) Li](http://github.com/cynngah)

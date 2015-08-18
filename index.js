@@ -28,36 +28,30 @@ module.exports = function(options) {
             for (var j = 0; j < csvArray.length; j++) {
                 // append to JSON string
                 var key = csvArray[j][1];
-                var subkeyArray = checkPrefix(key);
-                var value;
+                var subkeyArray = key.split('.');
+                var value = csvArray[j][i];
+                var k = 0;
+                var node = jsonObj;
 
-                if (subkeyArray) {
-                    var subkey = subkeyArray[1];
-                    var superkey = subkeyArray[0];
-
-                    // temp fix for !== object, should get rewritten for #6
-                    // "deep key nesting"
-                    value = csvArray[j][i];
-                    if (typeof jsonObj[superkey] !== 'object') {
-                        jsonObj[superkey] = {};
+                while (node && k < subkeyArray.length-1) {
+                    if (!node[subkeyArray[k]]) {
+                        node[subkeyArray[k]] = {};
                     }
-
-                    //console.log(superkey+', '+subkey+', '+stringify(jsonObj[superkey]));
-                    jsonObj[superkey][subkey] = value;
-                } else {
-                    value = csvArray[j][i];
-
-                    //console.log(key, value);
-                    jsonObj[key] = value;
+                    node = node[subkeyArray[k]];
+                    // create empty obj in key hierarchy if necessary
+                    k++;
+                    }
+                if (node) {
+                    node[subkeyArray[k]] = {};
+                    node[subkeyArray[k]] = value;
                 }
-
-                jsfile = new File({
-                    cwd: '/',
-                    path: '/' + lang + '/' + file, // put each translation file in a folder
-                    contents: new Buffer(stringify(jsonObj)),
-                });
             }
 
+            jsfile = new File({
+                cwd: '/',
+                path: '/' + lang + '/' + file, // put each translation file in a folder
+                contents: new Buffer(stringify(jsonObj))
+            });
             // do not write files from the gulp plugin itself
             // create a file object and push it back to through stream
             // so main gulpfile

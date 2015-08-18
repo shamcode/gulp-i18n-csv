@@ -59,16 +59,6 @@ module.exports = function(options) {
         }
     }
 
-    function checkPrefix(word) { // check for prefix
-        if (word) {
-            var prefixArray = word.split('.');
-            if (prefixArray.length > 1) {
-                //console.log(prefixArray);
-                return prefixArray;
-            }
-        }
-    }
-
     return through.obj(function(file, enc, cb) {
         var _this = this; // task is a reference to the through stream
 

@@ -33,14 +33,15 @@ module.exports = function(options) {
                 var k = 0;
                 var node = jsonObj;
 
-                while (node && k < subkeyArray.length-1) {
+                while (node && (k < subkeyArray.length - 1)) {
                     if (!node[subkeyArray[k]]) {
                         node[subkeyArray[k]] = {};
                     }
+
                     node = node[subkeyArray[k]];
-                    // create empty obj in key hierarchy if necessary
                     k++;
-                    }
+                }
+
                 if (node) {
                     node[subkeyArray[k]] = {};
                     node[subkeyArray[k]] = value;
@@ -50,8 +51,9 @@ module.exports = function(options) {
             jsfile = new File({
                 cwd: '/',
                 path: '/' + lang + '/' + file, // put each translation file in a folder
-                contents: new Buffer(stringify(jsonObj))
+                contents: new Buffer(stringify(jsonObj)),
             });
+
             // do not write files from the gulp plugin itself
             // create a file object and push it back to through stream
             // so main gulpfile

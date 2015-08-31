@@ -16,11 +16,40 @@ module.exports = function(options) {
         }
     }
 
+    function filePath(jsonObj, lang) {
+        var savePath;
+        if (options.resPath) {
+            var opSplit = options.resPath.split('/');
+            if (opSplit.length === 2) {
+                var nslngSplit = opSplit[1].split('-');
+                if (nslngSplit[0] === '__ns__') {
+                    nslngSplit[0] = 'translation';
+                }
+
+                savePath = '/' + opSplit[0] + '/' + nslngSplit[0] + '-' + lang + '.json';
+            } else if (opSplit.length === 3) {
+                if (opSplit[2] === '__ns__.json') {
+                    opSplit[2] = 'translation.json';
+                }
+
+                savePath = '/' + opSplit[0] + '/' + lang + '/' + opSplit[2];
+            }
+        } else {
+            savePath = '/' + lang + '/' + 'translation.json';
+        }
+
+        var jsfile = new File({
+            cwd: '/',
+            path: savePath, // put each translation file in a folder
+            contents: new Buffer(stringify(jsonObj)),
+        });
+
+        return jsfile;
+    }
+
     // parse array to JSON object and write to JSON file
     function parseArray(csvArray, task) {
-
         for (var i = 2; i < csvArray[0].length; i++) {
-            var file = 'translation.json'; // use the same name for the translation files
             var lang = csvArray[0][i]; // get language from the CSV header row
             var jsonObj = {}; // JSON object to be created
 
@@ -58,11 +87,7 @@ module.exports = function(options) {
                 }
             }
 
-            var jsfile = new File({
-                cwd: '/',
-                path: '/' + lang + '/' + file, // put each translation file in a folder
-                contents: new Buffer(stringify(jsonObj)),
-            });
+            var jsfile = filePath(jsonObj, lang);
 
             // do not write files from the gulp plugin itself
             // create a file object and push it back to through stream

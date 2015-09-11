@@ -19,21 +19,14 @@ module.exports = function(options) {
     function filePath(jsonObj, lang) {
         var savePath;
         if (options.resPath) {
-            var opSplit = options.resPath.split('/');
-            if (opSplit.length === 2) {
-                var nslngSplit = opSplit[1].split('-');
-                if (nslngSplit[0] === '__ns__') {
-                    nslngSplit[0] = 'translation';
-                }
-
-                savePath = '/' + opSplit[0] + '/' + nslngSplit[0] + '-' + lang + '.json';
-            } else if (opSplit.length === 3) {
-                if (opSplit[2] === '__ns__.json') {
-                    opSplit[2] = 'translation.json';
-                }
-
-                savePath = '/' + opSplit[0] + '/' + lang + '/' + opSplit[2];
+            var opSplit = options.resPath.split(/\/|\./);
+            var nsInd = opSplit.indexof('__ns__');
+            if (nsInd) {
+                opSplit[nsInd] = 'translation';
+                opSplit[-1] = '.json';
             }
+
+            savePath = opSplit.join('');
         } else {
             savePath = '/' + lang + '/' + 'translation.json';
         }

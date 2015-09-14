@@ -16,19 +16,29 @@ module.exports = function(options) {
         }
     }
 
-    function filePath(jsonObj, lang) {
+    function filePath(jsonObj, lang, key) {
         var savePath;
         if (options.resPath) {
-            var opSplit = options.resPath.split(/\/|\./);
+            var opSplit = options.resPath.split(/\/|\.|\-/);
             var nsInd = opSplit.indexof('__ns__');
+            var lngInd = opSplit.indexof('__lng__');
             if (nsInd) {
-                opSplit[nsInd] = 'translation';
+                if (key) {
+                    opSplit[nsInd] = key;
+                } else {
+                    opSplit[nsInd] = 'translation';
+                }
+                opSplit[lngInd] = lang;
                 opSplit[-1] = '.json';
             }
 
             savePath = opSplit.join('');
         } else {
-            savePath = '/' + lang + '/' + 'translation.json';
+            if (key) {
+                savePath = '/' + lang + '/' + key + '.json';
+            } else {
+                savePath = '/' + lang + '/' + 'translation.json';
+            }
         }
 
         var jsfile = new File({
@@ -38,6 +48,42 @@ module.exports = function(options) {
         });
 
         return jsfile;
+    }
+
+    // split language files further into subsections (ie. help) if unused much
+    function splitFile(jsonObj, lang) {
+        var key;
+        var files = [];
+        if (options.split) {
+            // when true
+            if (options.split === true) {
+                Object.keys(jsonObj).forEach(function(key) {
+                    files.push(filePath(jsonObj[key], lang, key));
+                    delete jsonObj[key];
+                });
+            } else if (typeof options.split === 'string') {
+                Object.keys(jsonObj).forEach(function(key) {
+                    if (key === options.split) {
+                        files.push(filePath(jsonObj[key], lang, key));
+                        delete jsonObj[key];
+                    }
+                });
+            } else if (options.split instanceof Array) {
+                Object.keys(jsonObj).forEach(function(key) {
+                    console.log(key, options.split, key in options.split);
+                    if (options.split.indexOf(key)) {
+                        console.log(key);
+                        files.push(filePath(jsonObj[key], lang, key));
+                        delete jsonObj[key];
+                    }
+                });
+            }
+        }
+        if (!options.split === true) {
+            files.push(filePath(jsonObj, lang, key));
+            console.log(files);
+        }
+        return files;
     }
 
     // parse array to JSON object and write to JSON file
@@ -80,12 +126,13 @@ module.exports = function(options) {
                 }
             }
 
-            var jsfile = filePath(jsonObj, lang);
-
+            var jsfile = splitFile(jsonObj, lang);
             // do not write files from the gulp plugin itself
             // create a file object and push it back to through stream
             // so main gulpfile
-            task.push(jsfile);
+            for (var k = 0; k < jsfile.length; k++) {
+                task.push(jsfile[k]);
+            }
         }
     }
 

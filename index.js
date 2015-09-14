@@ -70,9 +70,7 @@ module.exports = function(options) {
                 });
             } else if (options.split instanceof Array) {
                 Object.keys(jsonObj).forEach(function(key) {
-                    console.log(key, options.split, key in options.split);
-                    if (options.split.indexOf(key)) {
-                        console.log(key);
+                    if (options.split.indexOf(key) !== -1) {
                         files.push(filePath(jsonObj[key], lang, key));
                         delete jsonObj[key];
                     }

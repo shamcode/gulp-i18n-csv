@@ -28,6 +28,7 @@ module.exports = function(options) {
                 } else {
                     opSplit[nsInd] = 'translation';
                 }
+
                 opSplit[lngInd] = lang;
                 opSplit[-1] = '.json';
             }
@@ -69,18 +70,18 @@ module.exports = function(options) {
                     }
                 });
             } else if (options.split instanceof Array) {
-                Object.keys(jsonObj).forEach(function(key) {
-                    if (options.split.indexOf(key) !== -1) {
-                        files.push(filePath(jsonObj[key], lang, key));
-                        delete jsonObj[key];
-                    }
-                });
+                if (options.split.indexOf(key) !== -1) {
+                    files.push(filePath(jsonObj[key], lang, key));
+                    delete jsonObj[key];
+                }
             }
         }
-        if (!options.split === true) {
+
+        if (options.split !== true) {
             files.push(filePath(jsonObj, lang, key));
             console.log(files);
         }
+
         return files;
     }
 
@@ -125,11 +126,12 @@ module.exports = function(options) {
             }
 
             var jsfile = splitFile(jsonObj, lang);
+
             // do not write files from the gulp plugin itself
             // create a file object and push it back to through stream
             // so main gulpfile
-            for (var k = 0; k < jsfile.length; k++) {
-                task.push(jsfile[k]);
+            for (var x = 0; x < jsfile.length; x++) {
+                task.push(jsfile[x]);
             }
         }
     }

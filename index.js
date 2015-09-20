@@ -4,7 +4,7 @@ var csvParse = require('csv-parse');
 var gutil = require('gulp-util');
 var File = require('vinyl');
 
-module.exports = function(options) {
+module.exports = function (options) {
     options = options || {};
 
     // stringifies JSON and makes it pretty if asked
@@ -18,10 +18,13 @@ module.exports = function(options) {
 
     function filePath(jsonObj, lang) {
         var savePath;
+        var opSplit;
+        var nslngSplit;
+
         if (options.resPath) {
-            var opSplit = options.resPath.split('/');
+            opSplit = options.resPath.split('/');
             if (opSplit.length === 2) {
-                var nslngSplit = opSplit[1].split('-');
+                nslngSplit = opSplit[1].split('-');
                 if (nslngSplit[0] === '__ns__') {
                     nslngSplit[0] = 'translation';
                 }
@@ -38,30 +41,38 @@ module.exports = function(options) {
             savePath = '/' + lang + '/' + 'translation.json';
         }
 
-        var jsfile = new File({
+        return new File({
             cwd: '/',
             path: savePath, // put each translation file in a folder
             contents: new Buffer(stringify(jsonObj)),
         });
-
-        return jsfile;
     }
 
     // parse array to JSON object and write to JSON file
     function parseArray(csvArray, task) {
-        for (var i = 2; i < csvArray[0].length; i++) {
-            var lang = csvArray[0][i]; // get language from the CSV header row
-            var jsonObj = {}; // JSON object to be created
+        var csvErr = 'CSV poor format. Do not assign string value to key' +
+                     ' if there will be more subkeys nested within that key.';
+        var lang;
+        var jsonObj;
+        var i;
+        var j;
+        var key;
+        var subkeyArray;
+        var value;
+        var k;
+        var node;
 
-            for (var j = 0; j < csvArray.length; j++) {
+        for (i = 2; i < csvArray[0].length; i++) {
+            lang = csvArray[0][i]; // get language from the CSV header row
+            jsonObj = {}; // JSON object to be created
+
+            for (j = 0; j < csvArray.length; j++) {
                 // append to JSON string
-                var key = csvArray[j][1];
-                var subkeyArray = key.split('.');
-                var value = csvArray[j][i];
-                var k = 0;
-                var node = jsonObj;
-                var csvErr = 'CSV poor format. Do not assign string value to key' +
-                    ' if there will be more subkeys nested within that key.';
+                key = csvArray[j][1];
+                subkeyArray = key.split('.');
+                value = csvArray[j][i];
+                k = 0;
+                node = jsonObj;
 
                 while (node && (k < subkeyArray.length - 1)) {
                     if (!node[subkeyArray[k]]) {
@@ -87,17 +98,17 @@ module.exports = function(options) {
                 }
             }
 
-            var jsfile = filePath(jsonObj, lang);
-
             // do not write files from the gulp plugin itself
             // create a file object and push it back to through stream
             // so main gulpfile
-            task.push(jsfile);
+            task.push(filePath(jsonObj, lang));
         }
     }
 
-    return through.obj(function(file, enc, cb) {
-        var _this = this; // task is a reference to the through stream
+    return through.obj(function (file, enc, cb) {
+        var self = this; // task is a reference to the through stream
+        var csvArray = [];
+        var parser;
 
         if (file.isNull()) {
             cb(null, file);
@@ -106,10 +117,9 @@ module.exports = function(options) {
 
         // STREAM BLOCK
         if (file.isStream()) {
-            var csvArray = [];
-            var parser = csvParse();
+            parser = csvParse();
 
-            parser.on('readable', function() {
+            parser.on('readable', function () {
                 var record = parser.read();
                 while (record) {
                     csvArray.push(record);
@@ -117,14 +127,14 @@ module.exports = function(options) {
                 }
             });
 
-            parser.on('error', function(err) {
+            parser.on('error', function (err) {
                 //console.log('on error', err.message);
                 this.emit('error', new gutil.PluginError('gulp-i18n-csv', err));
             });
 
-            parser.on('finish', function() {
+            parser.on('finish', function () {
                 //console.log('on finish');
-                parseArray(csvArray, _this);
+                parseArray(csvArray, self);
                 parser.end();
                 cb();
             });
@@ -134,8 +144,8 @@ module.exports = function(options) {
             // BUFFER BLOCK
             try {
                 csvParse(file.contents.toString('utf-8'),
-                    function(err, output) {
-                        parseArray(output, _this);
+                    function (err, output) {
+                        parseArray(output, self);
                         cb();
                     });
             } catch (err) {

@@ -18,15 +18,17 @@ module.exports = function(options) {
 
     function filePath(jsonObj, lang, key) {
         var savePath;
+
+        // give default path if resPath not provided
         if (options.resPath) {
             savePath = options.resPath;
-            if (key) {
-                savePath = savePath.replace('__ns__', key);
-            } else {
-                savePath = savePath.replace('__ns__', 'translation');
-            }
         } else {
             savePath = 'locales/__lng__/__ns__.json';
+        }
+
+        if (key) {
+            savePath = savePath.replace('__ns__', key);
+        } else {
             savePath = savePath.replace('__ns__', 'translation');
         }
 
@@ -60,10 +62,12 @@ module.exports = function(options) {
                     }
                 });
             } else if (options.split instanceof Array) {
-                if (options.split.indexOf(key) !== -1) {
-                    files.push(filePath(jsonObj[key], lang, key));
-                    delete jsonObj[key];
-                }
+                Object.keys(jsonObj).forEach(function(key) {
+                    if (options.split.indexOf(key) !== -1) {
+                        files.push(filePath(jsonObj[key], lang, key));
+                        delete jsonObj[key];
+                    }
+                });
             }
         }
 

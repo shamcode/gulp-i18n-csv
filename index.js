@@ -112,7 +112,8 @@ module.exports = function (options) {
                         node[subkeyArray[k]] = {};
                     } else {
                         if (typeof node[subkeyArray[k]] !== 'object') {
-                            throw csvErr;
+                            task.emit('error', new gutil.PluginError('gulp-i18n-csv',csvErr));
+                            return;
                         }
                     }
 
@@ -125,7 +126,8 @@ module.exports = function (options) {
                         node[subkeyArray[k]] = value;
                     } else {
                         if (typeof node[subkeyArray[k]] === 'object') {
-                            throw csvErr;
+                            task.emit('error', new gutil.PluginError('gulp-i18n-csv',csvErr));
+                            return;
                         }
                     }
                 }

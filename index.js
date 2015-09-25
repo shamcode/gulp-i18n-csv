@@ -16,36 +16,67 @@ module.exports = function (options) {
         }
     }
 
-    function filePath(jsonObj, lang) {
+    function filePath(jsonObj, lang, key) {
         var savePath;
-        var opSplit;
-        var nslngSplit;
+        var writeObj = {};
 
+        // give default path if resPath not provided
         if (options.resPath) {
-            opSplit = options.resPath.split('/');
-            if (opSplit.length === 2) {
-                nslngSplit = opSplit[1].split('-');
-                if (nslngSplit[0] === '__ns__') {
-                    nslngSplit[0] = 'translation';
-                }
-
-                savePath = '/' + opSplit[0] + '/' + nslngSplit[0] + '-' + lang + '.json';
-            } else if (opSplit.length === 3) {
-                if (opSplit[2] === '__ns__.json') {
-                    opSplit[2] = 'translation.json';
-                }
-
-                savePath = '/' + opSplit[0] + '/' + lang + '/' + opSplit[2];
-            }
+            savePath = options.resPath;
         } else {
-            savePath = '/' + lang + '/' + 'translation.json';
+            savePath = 'locales/__lng__/__ns__.json';
         }
 
+        if (key) {
+            savePath = savePath.replace('__ns__', key);
+            writeObj[key] = jsonObj;
+        } else {
+            savePath = savePath.replace('__ns__', 'translation');
+            writeObj = jsonObj;
+        }
+
+        savePath = savePath.replace('__lng__', lang);
+
         return new File({
-            cwd: '/',
+            cwd: '.',
             path: savePath, // put each translation file in a folder
-            contents: new Buffer(stringify(jsonObj)),
+            contents: new Buffer(stringify(writeObj)),
         });
+    }
+
+    // split language files further into subsections (ie. help) if unused much
+    function splitFile(jsonObj, lang) {
+        var key;
+        var files = [];
+        if (options.split) {
+            // when true
+            if (options.split === true) {
+                Object.keys(jsonObj).forEach(function (key) {
+                    files.push(filePath(jsonObj[key], lang, key));
+                    delete jsonObj[key];
+                });
+            } else if (typeof options.split === 'string') {
+                Object.keys(jsonObj).forEach(function (key) {
+                    if (key === options.split) {
+                        files.push(filePath(jsonObj[key], lang, key));
+                        delete jsonObj[key];
+                    }
+                });
+            } else if (options.split instanceof Array) {
+                Object.keys(jsonObj).forEach(function (key) {
+                    if (options.split.indexOf(key) !== -1) {
+                        files.push(filePath(jsonObj[key], lang, key));
+                        delete jsonObj[key];
+                    }
+                });
+            }
+        }
+
+        if (options.split !== true) {
+            files.push(filePath(jsonObj, lang, key));
+        }
+
+        return files;
     }
 
     // parse array to JSON object and write to JSON file
@@ -61,6 +92,8 @@ module.exports = function (options) {
         var value;
         var k;
         var node;
+        var jsfile;
+        var x;
 
         for (i = 2; i < csvArray[0].length; i++) {
             lang = csvArray[0][i]; // get language from the CSV header row
@@ -98,10 +131,14 @@ module.exports = function (options) {
                 }
             }
 
+            jsfile = splitFile(jsonObj, lang);
+
             // do not write files from the gulp plugin itself
             // create a file object and push it back to through stream
             // so main gulpfile
-            task.push(filePath(jsonObj, lang));
+            for (x = 0; x < jsfile.length; x++) {
+                task.push(jsfile[x]);
+            }
         }
     }
 

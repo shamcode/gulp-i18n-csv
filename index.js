@@ -18,6 +18,7 @@ module.exports = function (options) {
 
     function filePath(jsonObj, lang, key) {
         var savePath;
+        var writeObj = {};
 
         // give default path if resPath not provided
         if (options.resPath) {
@@ -28,8 +29,10 @@ module.exports = function (options) {
 
         if (key) {
             savePath = savePath.replace('__ns__', key);
+            writeObj[key] = jsonObj;
         } else {
             savePath = savePath.replace('__ns__', 'translation');
+            writeObj = jsonObj;
         }
 
         savePath = savePath.replace('__lng__', lang);
@@ -37,7 +40,7 @@ module.exports = function (options) {
         return new File({
             cwd: '.',
             path: savePath, // put each translation file in a folder
-            contents: new Buffer(stringify(jsonObj)),
+            contents: new Buffer(stringify(writeObj)),
         });
     }
 

@@ -1,6 +1,7 @@
 /* jshint jasmine: true */
 'use strict';
 var File = require('vinyl');
+var es = require('event-stream');
 var i18nCsv = require('../');
 
 describe("Buffer mode",function () {
@@ -115,6 +116,49 @@ describe("Buffer mode",function () {
             expect(names.length).toBe(2);
             expect(names).toContain('en-translation.json');
             expect(names).toContain('en-split.json');
+            done();
+        });
+    });
+});
+
+describe("Stream mode",function () {
+    xit('should not convert a stream into a buffer', function (done) {
+        var data = new File({contents: es.readArray(['headers,lang,en,fr\n','useless notes,key,enval,frval\n','useless notes,key2,enval,frval'])});
+        var files = [];
+        var plugin = i18nCsv();
+        plugin.write(data);
+        plugin.end();
+        plugin.on('data', function (file) {
+            files.push(file);
+            expect(file.isStream()).toBe(true);
+            try {
+                JSON.parse(file.contents);
+            } catch (e) {
+                fail('Could not parse the generated file');
+            }
+        });
+        plugin.on('end', function () {
+            expect(files.length).toBe(2);
+            done();
+        });
+    });
+
+    it('should work when the stream is broken in the middle of word boundaries', function (done) {
+        var data = new File({contents: es.readArray(['headers,la','ng,en,fr\n','useless',' notes,key,enval,frval\n','useless notes,ke','y2,enval,frval'])});
+        var files = [];
+        var plugin = i18nCsv();
+        plugin.write(data);
+        plugin.end();
+        plugin.on('data', function (file) {
+            files.push(file);
+            try {
+                JSON.parse(file.contents);
+            } catch (e) {
+                fail('Could not parse the generated file');
+            }
+        });
+        plugin.on('end', function () {
+            expect(files.length).toBe(2);
             done();
         });
     });
